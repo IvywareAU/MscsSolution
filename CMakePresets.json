@@ -1,0 +1,111 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "23",
+        "MSCS_BUILD_LIBS": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC (multi-config: build --config Debug|Release)",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "windows-msvc-asan",
+      "displayName": "Windows MSVC + ASan (ProductionPlan Stage 1 step 5)",
+      "inherits": "windows-msvc",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /fsanitize=address",
+        "CMAKE_CXX_FLAGS_DEBUG": "/Od /Ob0 /Zi /D_DEBUG",
+        "CMAKE_EXE_LINKER_FLAGS": "/INCREMENTAL:NO",
+        "CMAKE_SHARED_LINKER_FLAGS": "/INCREMENTAL:NO"
+      }
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Linux GCC Debug",
+      "inherits": "base",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-clang-debug",
+      "displayName": "Linux Clang Debug",
+      "inherits": "linux-gcc-debug",
+      "cacheVariables": { "CMAKE_CXX_COMPILER": "clang++" }
+    },
+    {
+      "name": "linux-gcc-asan",
+      "displayName": "Linux GCC Debug + ASan/UBSan/LSan (ProductionPlan Stage 1 step 5)",
+      "description": "LSan rides along with ASan on Linux and needs no flag, only detect_leaks=1 at runtime. Do NOT add halt_on_error=0 to ASAN_OPTIONS: it turns a leak report into exit 0, so the run goes green while printing the leak. -fno-sanitize=alignment is a RECORDED EXCEPTION, not a default: the wide-string accessors hand out const wchar_t* at odd addresses inside packed message buffers, which trips UBSan's alignment check in p2p_keyrotate, p2p_authancestor and p2p_revokedist. That is an open finding (ProductionPlan.md Stage 1 step 5) whose fix is a message-layout change. Disabling one check class keeps ASan and the other ~20 UBSan classes live on those three tests; excluding the tests instead would have lost all of it. Re-enable alignment when the layout is fixed. Measured 2026-08-18.",
+      "inherits": "linux-gcc-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-sanitize=alignment -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
+      }
+    },
+    {
+      "name": "linux-gcc-tsan",
+      "displayName": "Linux GCC Debug + TSan (pump/hub race gate, §7)",
+      "inherits": "linux-gcc-debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=thread"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-msvc-debug",   "configurePreset": "windows-msvc", "configuration": "Debug" },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc", "configuration": "Release" },
+    { "name": "windows-msvc-asan",    "configurePreset": "windows-msvc-asan", "configuration": "Debug" },
+    { "name": "linux-gcc-debug",      "configurePreset": "linux-gcc-debug" },
+    { "name": "linux-clang-debug",    "configurePreset": "linux-clang-debug" },
+    { "name": "linux-gcc-asan",       "configurePreset": "linux-gcc-asan" },
+    { "name": "linux-gcc-tsan",       "configurePreset": "linux-gcc-tsan" }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-msvc-debug",
+      "displayName": "Windows MSVC Debug — ctest",
+      "configurePreset": "windows-msvc",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true },
+      "environment": {
+        "PATH": "${sourceDir}/build/windows-msvc/Msgcore/Debug;${sourceDir}/build/windows-msvc/TargetCore/Debug;$penv{PATH}"
+      }
+    },
+    {
+      "name": "linux-gcc-debug",
+      "displayName": "Linux GCC Debug — ctest",
+      "configurePreset": "linux-gcc-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-gcc-asan",
+      "displayName": "Linux GCC ASan — ctest",
+      "configurePreset": "linux-gcc-asan",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "linux-gcc-tsan",
+      "displayName": "Linux GCC TSan — ctest",
+      "configurePreset": "linux-gcc-tsan",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

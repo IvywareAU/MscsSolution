@@ -1,0 +1,57 @@
+P2Pmsgcore
+Copyright 2000-2026 Ivyware Pty Ltd, Khrustal & Mann
+             MELBOURNE, VICTORIA, AUSTRALIA, 3000
+
+This product includes software developed by Ivyware Pty Ltd and by
+Khrustal & Mann.
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file in
+this directory, or http://www.apache.org/licenses/LICENSE-2.0
+
+
+-------------------------------------------------------------------------
+Files NOT covered by the Apache License, Version 2.0
+-------------------------------------------------------------------------
+
+The following files are Microsoft Corporation project-template, wizard-
+generated, or sample-derived files. They remain subject to Microsoft's own
+terms and carry their own notices, which must not be removed:
+
+    Targetver.h                        MFC sample source.
+                                       Copyright (C) Microsoft Corporation.
+    Resource.h                         Visual C++ generated include file.
+    P2Pmsgcore.rc                    Visual C++ generated resource script.
+    stdafx.h                           Visual Studio project template.
+    stdafx.cpp                         Visual Studio project template.
+    P2Pmsgcore(2022).sln               Visual Studio solution file.
+    P2Pmsgcore(2022).vcxproj           Visual Studio project files.
+    P2Pmsgcore(2022).vcxproj.filters
+    P2Pmsgcore(2022).vcxproj.user
+
+Targetver.h additionally carries Microsoft's Fluent UI referential-material
+notice; licence terms for the Fluent UI are available separately from
+Microsoft.
+
+
+-------------------------------------------------------------------------
+Third-party components required at build or run time
+-------------------------------------------------------------------------
+
+This software is built against, and links to, components that are licensed
+separately and are NOT distributed under the Apache License, Version 2.0:
+
+    Microsoft Foundation Classes (MFC)  - Microsoft, licensed separately.
+                                          Built as an MFC extension DLL.
+    Microsoft Visual C++ runtime        - Microsoft, licensed separately.
+                                          (mfc140u, msvcp140, vcruntime140,
+                                          ucrtbase)
+    Windows SDK / CNG (bcrypt, ncrypt)  - Microsoft, part of the operating
+                                          system.
+
+The Linux build additionally uses:
+
+    OpenSSL 3 (libcrypto)               - Apache License 2.0.
+    liburing                            - LGPL-2.1 / MIT dual licence.
+
+These are dependencies, not bundled code. No source from any of them is
+included in this repository.
