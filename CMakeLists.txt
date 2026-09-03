@@ -21,7 +21,19 @@ endif()
 
 enable_testing()   # top-level, so `ctest --test-dir build` discovers subdir add_test()s
 
-add_subdirectory(Platform)
+# The shim layer lives in Msgcore now -- the standalone Platform repository was
+# retired on 2026-09-03 and its tree vendored into Msgcore/Platform, so this is the
+# one and only copy. It is added HERE, before Msgcore, because the header check at
+# the bottom of this file needs p2pplatform even when MSCS_BUILD_LIBS is OFF;
+# Msgcore/CMakeLists.txt adds the same directory itself when nothing has, and its
+# `if(NOT TARGET p2pplatform)` guard is what makes the two entry points agree.
+#
+# Do not re-introduce a second copy anywhere in this tree. A quoted include resolves
+# relative to the citing file, so two physical p2ptypes.h reach one Linux translation
+# unit and #pragma once cannot deduplicate them -- ~40 redefinition errors, invisible
+# on Windows because the win-compat forwarders that reach the second copy are
+# generated only on Linux.
+add_subdirectory(Msgcore/Platform)
 
 # The msgcore / targetcore library targets are enabled on Linux as the port progresses.
 # On Windows they are intentionally not built here (vcxproj remains authoritative, §7).
@@ -94,9 +106,9 @@ if(MSCS_BUILD_LIBS)
     endif()
 endif()
 
-# Phase-0 header self-consistency check (see Platform/checks/).
+# Phase-0 header self-consistency check (see Msgcore/Platform/checks/).
 option(MSCS_BUILD_HEADER_CHECK "Compile a TU that includes every platform header" ON)
 if(MSCS_BUILD_HEADER_CHECK)
-    add_executable(platform_header_check Platform/checks/header_check.cpp)
+    add_executable(platform_header_check Msgcore/Platform/checks/header_check.cpp)
     target_link_libraries(platform_header_check PRIVATE p2pplatform)
 endif()
