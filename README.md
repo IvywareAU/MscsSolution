@@ -13,8 +13,8 @@ not configure the project at all: `TargetCore`'s `solution-build.yml` had to be 
 workflow compiled 4 of 30 translation units. A green tick meant the repository's wiring was
 intact and nothing more.
 
-This repository is the missing piece. With it, a runner can check out five repositories by name
-and get the same build a developer gets.
+This repository is the missing piece. With it, a runner can check out the component
+repositories by name and get the same build a developer gets.
 
 ## The layout it expects
 
@@ -24,18 +24,19 @@ Clone this, then place the components inside it:
 <this repo>/
 ├── CMakeLists.txt          <- here
 ├── CMakePresets.json       <- here
-├── Platform/               <- IvywareAU/Platform      (required)
-├── Msgcore/                <- IvywareAU/Msgcore       (required for MSCS_BUILD_LIBS)
-├── TargetCore/             <- IvywareAU/TargetCore
-├── MscsUnitTests/          <- IvywareAU/MscsUnitTests
-├── TreeFs/  DspChain/  P2PeerFs/  P2PeerUtilityHubs/  MscsUnitTestsExternal/
-└── ...                        (all optional)
+├── Msgcore/                <- IvywareAU/Msgcore       (required)
+├── TargetCore/             <- IvywareAU/TargetCore    (optional)
+└── MscsUnitTests/          <- IvywareAU/MscsUnitTests (optional)
 ```
 
-`Platform` is the only unconditional one — `add_subdirectory(Platform)` is not guarded, and
-`platform_header_check` compiles `Platform/checks/header_check.cpp`. Everything else is guarded
-by `EXISTS`, so a partial checkout configures and simply builds less. That is deliberate: a
-Msgcore-only checkout is a supported way to verify the port.
+`Msgcore` is the only unconditional one, and it is unconditional even with `MSCS_BUILD_LIBS`
+off: the platform shim layer lives inside it, at `Msgcore/Platform/`, so `add_subdirectory` is
+not guarded and `platform_header_check` compiles `Msgcore/Platform/checks/header_check.cpp`.
+Everything else is guarded by `EXISTS`, so a partial checkout configures and simply builds
+less. That is deliberate: a Msgcore-only checkout is a supported way to verify the port.
+
+The build file also carries `EXISTS` guards for components that are not published here and
+are not planned to be. On a checkout of the repositories above, those branches do not fire.
 
 ## Build
 
