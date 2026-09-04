@@ -20,6 +20,27 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
     {
+      "name": "windows-msvc-x86",
+      "displayName": "Windows MSVC 32-bit (multi-config: build --config Debug|Release)",
+      "description": "The .sln carries Win32 as well as x64. Without this preset the CMake build can only ever speak for half the Windows architectures, which is one of the reasons the CMake row in Readme.md is not green.",
+      "inherits": "windows-msvc",
+      "architecture": "Win32"
+    },
+    {
+      "name": "windows-msvc-lib",
+      "displayName": "Windows MSVC + static cores (the vcxproj DebugLib/ReleaseLib shape)",
+      "description": "Adds msgcore_static and targetcore_static beside the shared pair. Its own build tree, because DebugLib/ReleaseLib are separate MSBuild configurations and keeping them separate here means the ordinary preset does not pay to compile the cores twice.",
+      "inherits": "windows-msvc",
+      "cacheVariables": { "MSCS_BUILD_STATIC_LIBS": "ON" }
+    },
+    {
+      "name": "windows-msvc-x86-lib",
+      "displayName": "Windows MSVC 32-bit + static cores",
+      "description": "The static cores at 32 bits. NOT redundant with windows-msvc-lib: the block-arithmetic corruption p2p_staticlink exists to catch only ever manifested at 32 bits, so on the x64 tree two thirds of that gate pass whether the defect is present or not.",
+      "inherits": "windows-msvc-x86",
+      "cacheVariables": { "MSCS_BUILD_STATIC_LIBS": "ON" }
+    },
+    {
       "name": "windows-msvc-asan",
       "displayName": "Windows MSVC + ASan (ProductionPlan Stage 1 step 5)",
       "inherits": "windows-msvc",
@@ -50,10 +71,10 @@
     {
       "name": "linux-gcc-asan",
       "displayName": "Linux GCC Debug + ASan/UBSan/LSan (ProductionPlan Stage 1 step 5)",
-      "description": "LSan rides along with ASan on Linux and needs no flag, only detect_leaks=1 at runtime. Do NOT add halt_on_error=0 to ASAN_OPTIONS: it turns a leak report into exit 0, so the run goes green while printing the leak. -fno-sanitize=alignment is a RECORDED EXCEPTION, not a default: the wide-string accessors hand out const wchar_t* at odd addresses inside packed message buffers, which trips UBSan's alignment check in p2p_keyrotate, p2p_authancestor and p2p_revokedist. That is an open finding (ProductionPlan.md Stage 1 step 5) whose fix is a message-layout change. Disabling one check class keeps ASan and the other ~20 UBSan classes live on those three tests; excluding the tests instead would have lost all of it. Re-enable alignment when the layout is fixed. Measured 2026-08-18.",
+      "description": "LSan rides along with ASan on Linux and needs no flag, only detect_leaks=1 at runtime. Do NOT add halt_on_error=0 to ASAN_OPTIONS: it turns a leak report into exit 0, so the run goes green while printing the leak. THE ALIGNMENT CHECK IS BACK ON as of 2026-08-20, and its absence is worth remembering. It was suppressed because three tests - p2p_keyrotate, p2p_authancestor, p2p_revokedist - cast P2PeerMsg::Data() to const wchar_t* and read it in place; the payload sits at an arbitrary offset inside a pack(1) image, so on Linux that is a 4-byte-aligned load from an odd address. The row that recorded it (F-S5-3) called the cause the wide-string accessors and the fix a message-layout change; both were wrong. The accessors were already safe - c_wstr()/c_name() go through p2p_wstr_from_store, which memcpys per unit - and what actually had no alignment guarantee was the raw blob payload, which the three tests, and P2Pc_vBlob<StructType>, read through a type that needs one. Closed by copying out instead of casting, and by saying so at Data(), at c_vBlob() and at the P2Pc_vBlob operators. Suppressing one check class kept ASan and the other ~20 UBSan classes live meanwhile, which excluding the tests would not have; but a suppression is a measurement nobody is taking, and this one hid the real shape of the finding for two days.",
       "inherits": "linux-gcc-debug",
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-sanitize=alignment -fno-omit-frame-pointer",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
         "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
       }
@@ -72,6 +93,11 @@
   "buildPresets": [
     { "name": "windows-msvc-debug",   "configurePreset": "windows-msvc", "configuration": "Debug" },
     { "name": "windows-msvc-release", "configurePreset": "windows-msvc", "configuration": "Release" },
+    { "name": "windows-msvc-x86-debug",   "configurePreset": "windows-msvc-x86", "configuration": "Debug" },
+    { "name": "windows-msvc-x86-release", "configurePreset": "windows-msvc-x86", "configuration": "Release" },
+    { "name": "windows-msvc-lib-debug",   "configurePreset": "windows-msvc-lib", "configuration": "Debug" },
+    { "name": "windows-msvc-lib-release", "configurePreset": "windows-msvc-lib", "configuration": "Release" },
+    { "name": "windows-msvc-x86-lib-debug", "configurePreset": "windows-msvc-x86-lib", "configuration": "Debug" },
     { "name": "windows-msvc-asan",    "configurePreset": "windows-msvc-asan", "configuration": "Debug" },
     { "name": "linux-gcc-debug",      "configurePreset": "linux-gcc-debug" },
     { "name": "linux-clang-debug",    "configurePreset": "linux-clang-debug" },
@@ -87,6 +113,16 @@
       "output": { "outputOnFailure": true },
       "environment": {
         "PATH": "${sourceDir}/build/windows-msvc/Msgcore/Debug;${sourceDir}/build/windows-msvc/TargetCore/Debug;$penv{PATH}"
+      }
+    },
+    {
+      "name": "windows-msvc-x86-debug",
+      "displayName": "Windows MSVC 32-bit Debug — ctest",
+      "configurePreset": "windows-msvc-x86",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true },
+      "environment": {
+        "PATH": "${sourceDir}/build/windows-msvc-x86/Msgcore/Debug;${sourceDir}/build/windows-msvc-x86/TargetCore/Debug;$penv{PATH}"
       }
     },
     {
