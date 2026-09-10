@@ -23,7 +23,7 @@ project(Mscs LANGUAGES CXX)
 #           added, which is the failure mode this whole comment block exists to prevent:
 #           a number in prose has no build step to make it wrong out loud.
 #
-# WHAT THE (2022).vcxproj/.sln STILL DO THAT THIS FILE DOES NOT, because "parity" here
+# WHAT THE (2026).vcxproj/.sln STILL DO THAT THIS FILE DOES NOT, because "parity" here
 # means parity for the two cores and their test suite, not for the Windows product:
 #
 #   * CONFIGURATIONS -- CLOSED 2026-08-22, and this bullet is kept rather than deleted

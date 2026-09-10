@@ -15,7 +15,7 @@
       "name": "windows-msvc",
       "displayName": "Windows MSVC (multi-config: build --config Debug|Release)",
       "inherits": "base",
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "architecture": "x64",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
     },
