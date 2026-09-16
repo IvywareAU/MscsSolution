@@ -59,11 +59,6 @@ not guarded and `platform_header_check` compiles `Msgcore/Platform/checks/header
 Everything else is guarded by `EXISTS`, so a partial checkout configures and simply builds
 less. That is deliberate: a Msgcore-only checkout is a supported way to verify the port.
 
-The build file also carries `EXISTS` guards for components that are not published here and
-are not planned to be — `TreeFs`, `DspChain`, `P2PeerFs`, `P2PeerUtilityHubs` and `P2PeerWeb`,
-which is why `CMakeLists.txt` names directories that no listed repository provides. On a
-checkout of the repositories above, those branches do not fire.
-
 ## Build
 
 ```bash
