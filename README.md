@@ -8,7 +8,7 @@ component repositories assemble *into*.
 
 The MSCS components are separate repositories, and the top-level build that joins them was not
 one of them. It lived only in the working tree on one developer's machine, which meant CI could
-not configure the project at all: `TargetCore`'s `solution-build.yml` had to be handed a
+not configure the project at all: `Targetcore`'s `solution-build.yml` had to be handed a
 `solution_repo` that did not exist anywhere, so it had never been dispatched, and the automatic
 workflow compiled 4 of 30 translation units. A green tick meant the repository's wiring was
 intact and nothing more.
@@ -25,7 +25,7 @@ Clone this, then place the components inside it:
 ├── CMakeLists.txt          <- here
 ├── CMakePresets.json       <- here
 ├── Msgcore/                <- IvywareAU/Msgcore       (required)
-├── TargetCore/             <- IvywareAU/TargetCore    (optional)
+├── Targetcore/             <- IvywareAU/Targetcore    (optional)
 └── MscsUnitTests/          <- IvywareAU/MscsUnitTests (optional)
 ```
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.24)
 project(Mscs LANGUAGES CXX)
 
 # ---------------------------------------------------------------------------
-# Cross-platform source of truth for Msgcore + TargetCore (the Linux port plan §7).
+# Cross-platform source of truth for Msgcore + Targetcore (the Linux port plan §7).
 #
 # Phase status: THIS IS NO LONGER A PHASE-0 SKELETON, and the paragraph that said it was
 # outlived the work it described. It claimed the library targets were guarded so that a
@@ -13,7 +13,7 @@ project(Mscs LANGUAGES CXX)
 #   Linux   libmsgcore.so + libtargetcore.so (Platform/ shims, io_uring, OpenSSL);
 #           ctest 48/48 via the linux-gcc-debug preset trio, Debug and Release,
 #           measured 2026-08-22.
-#   Windows Msgcore.dll + TargetCore.dll as MFC extension DLLs (CMAKE_MFC_FLAG=2, .rc
+#   Windows Msgcore.dll + Targetcore.dll as MFC extension DLLs (CMAKE_MFC_FLAG=2, .rc
 #           compiled), native IOCP + CNG rather than the io_uring/OpenSSL pair;
 #           ctest 45/45 via `cmake --preset windows-msvc` -> build -> `ctest --preset`,
 #           Debug and Release, measured 2026-08-22.
@@ -37,10 +37,10 @@ project(Mscs LANGUAGES CXX)
 #         configurations -- memory corruption in the vect block arithmetic, where
 #         P2PmsgVect_SizeofItem sized the name at 27 bytes and P2PmsgVect_InitItem wrote
 #         127 into it. x64 was never wrong only because both rules answered 127 there.
-#       - Static: P2PCngCrypto.h guarded its export macro `_WIN32 && !TargetCore_STATIC`,
+#       - Static: P2PCngCrypto.h guarded its export macro `_WIN32 && !Targetcore_STATIC`,
 #         so a Windows static build fell through to the GCC arm and MSVC was handed
 #         __attribute__((visibility("default"))). The vcxproj's OWN DebugLib/ReleaseLib
-#         configurations define TargetCore_STATIC, so 4 of the 8 configurations the .sln
+#         configurations define Targetcore_STATIC, so 4 of the 8 configurations the .sln
 #         declares could not compile that header either.
 #     Both are fixed and Win32 measures 45/45 in Debug and Release. Not claimed: no test
 #     links against either static archive yet.
@@ -172,7 +172,7 @@ option(MSCS_BUILD_LIBS "Build the msgcore/targetcore stack (both platforms; pres
 
 # The static half of the CONFIGURATIONS gap named above. The cores' vcxproj carry
 # DebugLib/ReleaseLib -- StaticLibrary, UseOfMfc still Dynamic, and Msgcore_STATIC +
-# TargetCore_STATIC defined, which is the arm Msgcore.h/TargetCore.h already have for
+# Targetcore_STATIC defined, which is the arm Msgcore.h/Targetcore.h already have for
 # "no dllimport, nothing to import". With this ON, msgcore_static and targetcore_static
 # are added ALONGSIDE the shared pair rather than replacing them, because a CMake config
 # and a CMake target are orthogonal where an MSBuild configuration is not: one build tree
@@ -210,23 +210,23 @@ option(MSCS_BUILD_STATIC_LIBS "Also build msgcore_static/targetcore_static (the 
 #     would have to reproduce a linker output path as well, by a different mechanism.
 #
 # So a CMake build feeds nothing. `cmake --install` into a GNUInstallDirs prefix is how an
-# artifact leaves this tree, and TargetCore/install-check gates that path.
+# artifact leaves this tree, and Targetcore/install-check gates that path.
 # ---------------------------------------------------------------------------
 
 if(MSCS_BUILD_LIBS)
     # Msgcore builds on BOTH platforms: Linux (libmsgcore.so via the Platform shims) and,
     # since the CMake-on-Windows parity work (§7), Windows/MSVC (Msgcore.dll, dynamic MFC).
     # The sentence that used to follow -- "the rest of the stack is still Linux-only under
-    # CMake" -- was contradicted three lines below it by the time anyone read it: TargetCore,
+    # CMake" -- was contradicted three lines below it by the time anyone read it: Targetcore,
     # TreeFs, DspChain and the MscsUnitTests suites all configure on both now. What stays
     # one-sided is named at each guard: the FUSE spike and the transport harnesses that need
     # PTYs on Linux, the WinFsp frontend and com232/com0com on Windows.
     add_subdirectory(Msgcore)
 
-    # TargetCore builds on both platforms now (Windows/MSVC: native IOCP + CNG, §7).
+    # Targetcore builds on both platforms now (Windows/MSVC: native IOCP + CNG, §7).
     # Guard by existence so a Msgcore-only checkout (e.g. Phase-1 verification) still configures.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/TargetCore/CMakeLists.txt)
-        add_subdirectory(TargetCore)
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Targetcore/CMakeLists.txt)
+        add_subdirectory(Targetcore)
     endif()
 
     # TreeFs (P2P FileSystem core, portable C++17 over the msgcore C API) — BOTH platforms.
@@ -237,7 +237,7 @@ if(MSCS_BUILD_LIBS)
         add_subdirectory(TreeFs)
     endif()
 
-    # DspChain (DSP signal-chain over the TargetCore framework, p2p_SignalChain.md) —
+    # DspChain (DSP signal-chain over the Targetcore framework, p2p_SignalChain.md) —
     # BOTH platforms. Needs targetcore + msgcore, so it is added AFTER them and BEFORE
     # MscsUnitTests (the dsp_* harnesses link dspchain). Guard by existence since DspChain
     # is its own component repo.
@@ -278,7 +278,7 @@ if(MSCS_BUILD_LIBS)
     #
     # Since the 2026-08-14 split it needs ONLY targetcore + msgcore + p2pplatform. Everything
     # that needed treefs, p2putilhubs or dspchain is in MscsUnitTestsExternal below.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/TargetCore/CMakeLists.txt AND
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Targetcore/CMakeLists.txt AND
        EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/MscsUnitTests/CMakeLists.txt)
         add_subdirectory(MscsUnitTests)
     endif()
