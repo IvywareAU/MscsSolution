@@ -229,48 +229,6 @@ if(MSCS_BUILD_LIBS)
         add_subdirectory(Targetcore)
     endif()
 
-    # TreeFs (P2P FileSystem core, portable C++17 over the msgcore C API) — BOTH platforms.
-    # Needs only Msgcore, so it builds in a Msgcore-only checkout. Guard by existence since
-    # TreeFs is its own component repo. Added BEFORE MscsUnitTests (unit_suite links treefs).
-    # The FUSE spike (MSCS_BUILD_FUSE) stays Linux-only inside TreeFs/CMakeLists.txt.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/TreeFs/CMakeLists.txt)
-        add_subdirectory(TreeFs)
-    endif()
-
-    # DspChain (DSP signal-chain over the Targetcore framework, p2p_SignalChain.md) —
-    # BOTH platforms. Needs targetcore + msgcore, so it is added AFTER them and BEFORE
-    # MscsUnitTests (the dsp_* harnesses link dspchain). Guard by existence since DspChain
-    # is its own component repo.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/DspChain/CMakeLists.txt)
-        add_subdirectory(DspChain)
-    endif()
-
-    # P2PeerFs (mountable live-hub filesystem, p2p_PeerFs.md) — design-validation
-    # spikes for now. Added AFTER DspChain + targetcore (spike 1 links dspchain,
-    # spike 2 links targetcore). Guard by existence since P2PeerFs is its own dir.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/P2PeerFs/CMakeLists.txt)
-        add_subdirectory(P2PeerFs)
-    endif()
-
-    # P2PeerUtilityHubs (tree-moving utility hubs, p2p_PeerUtilityHubs.md) — BOTH
-    # platforms. Needs targetcore + msgcore + treefs, so it is added AFTER them and
-    # BEFORE MscsUnitTests (the util_* harnesses link p2putilhubs). Guard by existence.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/P2PeerUtilityHubs/CMakeLists.txt)
-        add_subdirectory(P2PeerUtilityHubs)
-    endif()
-
-    # P2PeerWeb (HTTP/HTTPS front door whose every logical block is a hub,
-    # p2p_WebServer.md). Needs targetcore + msgcore, so it is added AFTER them.
-    # LINUX IS THE RELEASE TARGET (§3.7) and there is deliberately no vcxproj, so
-    # unlike DspChain this file is the ONLY build definition it has. A Windows
-    # configure still builds it, as verification rather than as a product: the
-    # framework-free half (p2pweb_core -- envelope, HTTP parser, platform floor)
-    # compiles and its suite runs on both toolchains, which is what keeps the
-    # parsers §9 calls the hostile surface under test on every box.
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/P2PeerWeb/CMakeLists.txt)
-        add_subdirectory(P2PeerWeb)
-    endif()
-
     # MscsUnitTests regression suites — BOTH platforms now (§7). The CMakeLists builds the
     # portable suites (unit_suite / u8 smokes / daemon harness / golden) under CMake+MSVC and
     # guards the Linux-transport mesh harnesses (dmx/wsa/pipe/232/mix) + the bash-script tests
