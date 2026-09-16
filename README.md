@@ -18,15 +18,39 @@ repositories by name and get the same build a developer gets.
 
 ## The layout it expects
 
-Clone this, then place the components inside it:
+Clone this, then place the components inside it. Every repository in the family resolves its
+neighbours as siblings — `..\Msgcore`, `..\Targetcore`, `..\MsgcoreMFC` — so the directory
+names below are not a suggestion: the project files hard-code them.
 
 ```
 <this repo>/
-├── CMakeLists.txt          <- here
-├── CMakePresets.json       <- here
-├── Msgcore/                <- IvywareAU/Msgcore       (required)
-├── Targetcore/             <- IvywareAU/Targetcore    (optional)
-└── MscsUnitTests/          <- IvywareAU/MscsUnitTests (optional)
+├── CMakeLists.txt              <- here
+├── CMakePresets.json           <- here
+│
+│   # configured by this build
+├── Msgcore/                    <- IvywareAU/Msgcore                 (required)
+├── Targetcore/                 <- IvywareAU/Targetcore              (optional)
+├── MscsUnitTests/              <- IvywareAU/MscsUnitTests           (optional; needs Targetcore)
+│
+│   # the rest of the family. This build does not configure them: each carries
+│   # its own VS2022 solution and finds the cores beside it.
+├── MsgFacade/                  <- IvywareAU/MsgFacade
+├── TargetFacade/               <- IvywareAU/TargetFacade
+├── MsgcoreMFC/                 <- IvywareAU/MsgcoreMFC
+├── TargetcoreMFC/              <- IvywareAU/TargetcoreMFC
+├── MsgcoreUtils/               <- IvywareAU/MsgcoreUtils
+├── _Msgcore_UseExamples/       <- IvywareAU/_Msgcore_UseExamples
+└── _Targetcore_UseExamples/    <- IvywareAU/_Targetcore_UseExamples
+```
+
+`MSCS_JavaBindings` is the one that does not go inside. Its `run_all.ps1` and its `pom.xml`
+reach for `..\..\MSCS\...`, so it sits *beside* this tree — and the tree has to be checked out
+under the name `MSCS` for those paths to resolve at all:
+
+```
+<parent>/
+├── MSCS/                       <- this repository, and everything above
+└── MSCS_JavaBindings/          <- IvywareAU/MSCS_JavaBindings
 ```
 
 `Msgcore` is the only unconditional one, and it is unconditional even with `MSCS_BUILD_LIBS`
@@ -36,7 +60,9 @@ Everything else is guarded by `EXISTS`, so a partial checkout configures and sim
 less. That is deliberate: a Msgcore-only checkout is a supported way to verify the port.
 
 The build file also carries `EXISTS` guards for components that are not published here and
-are not planned to be. On a checkout of the repositories above, those branches do not fire.
+are not planned to be — `TreeFs`, `DspChain`, `P2PeerFs`, `P2PeerUtilityHubs` and `P2PeerWeb`,
+which is why `CMakeLists.txt` names directories that no listed repository provides. On a
+checkout of the repositories above, those branches do not fire.
 
 ## Build
 
